@@ -1,0 +1,104 @@
+<!-- src/app/modules/dashboard/pages/dashboard/dashboard.component.html -->
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Dashboard de Reclamos</h1>
+    </div>
+
+    <!-- Tarjetas de estadísticas -->
+    
+    <div class="row g-4 mb-4">
+        <div class="col-12" *ngIf="loading">
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12" *ngIf="!loading && statCards.length === 0">
+            <div class="alert alert-info">
+                No se encontraron datos de estadísticas generales.
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-xl-3" *ngFor="let card of statCards">
+            <div class="stat-card">
+                <div class="stat-card-icon">
+                    <i class="bi {{ card.icon }}"></i>
+                </div>
+                <div class="stat-card-content">
+                    <h2 class="stat-card-count">
+                        {{ formatNumber(card.count, card.decimal) }}<span *ngIf="card.suffix">{{ card.suffix }}</span>
+                    </h2>
+                    <p class="stat-card-title">{{ card.title }}</p>
+                    <p class="stat-card-change" *ngIf="card.percentChange !== 0"
+                        [ngClass]="{'positive': isPositive(card.percentChange), 'negative': isNegative(card.percentChange)}">
+                        <i class="bi"
+                            [ngClass]="{'bi-arrow-up-right': isPositive(card.percentChange), 'bi-arrow-down-right': isNegative(card.percentChange)}"></i>
+                        {{ getAbsoluteValue(card.percentChange) }}% desde {{ card.timeFrame }}
+                    </p>
+                    <p class="stat-card-change neutral" *ngIf="card.percentChange === 0">
+                        Sin cambios desde {{ card.timeFrame }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos principales -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h2 class="chart-title">Tendencia de Reclamos</h2>
+                    <div class="chart-actions">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button"
+                                id="dropdownYear" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ yearSelected }}
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownYear">
+                                <li *ngFor="let year of years">
+                                    <a class="dropdown-item" (click)="onYearChange(year)">{{ year }}</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-container">
+                        <canvas #trendChart></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h2 class="chart-title">Distribución de Reclamos</h2>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-container">
+                        <canvas #pieChart></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h2 class="chart-title">Análisis de Pareto: Motivos de Reclamos</h2>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-container">
+                        <canvas #paretoChart></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,75 @@
+// src/app/modules/motivos/pages/lista-motivos/lista-motivos.component.scss
+.showing-info {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+// Estilos para los botones de acción
+.btn-group .btn {
+  margin-right: 0.25rem;
+
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+// Truncar texto largo
+.text-truncate-container {
+  width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Estilos para la paginación
+.pagination .page-item {
+  cursor: pointer;
+  
+  &.disabled {
+    cursor: not-allowed;
+  }
+  
+  .page-link {
+    color: #4361ee;
+    
+    &:focus {
+      box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    }
+  }
+  
+  &.active .page-link {
+    background-color: #4361ee;
+    border-color: #4361ee;
+  }
+}
+
+// Sombras y transiciones para las tarjetas
+.card {
+  transition: box-shadow 0.3s ease-in-out;
+  
+  &:hover {
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+  }
+}
+
+// Estilos para los forms
+.form-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+// Estilos para badges de estado
+.badge {
+  padding: 0.5em 0.75em;
+  font-weight: 500;
+}

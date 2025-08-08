@@ -1,0 +1,35 @@
+<header class="header">
+    <div class="header-left">
+        <button class="sidebar-toggle-btn" (click)="onToggleSidebar()">
+            <i class="bi bi-list"></i>
+        </button>
+        <div class="logo">
+            <img src="logo_empresa.jpg" alt="Tecnimotors Logo" class="logo-img">
+            <span class="logo-text d-none d-md-inline">Gestión de Reclamos</span>
+        </div>
+    </div>
+
+    <div class="header-right">
+        <div class="user-profile dropdown">
+            <button class="btn dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <div class="avatar">{{obtenerIniciales()}}</div>
+                <span class="user-name d-none d-md-inline">{{ userName }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                <li class="dropdown-header">{{ userName }}</li>
+                <li><span class="dropdown-item-text text-muted">{{ formatearRol(userRole) }}</span></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" routerLink="/perfil"><i class="bi bi-person me-2"></i>Mi Perfil</a></li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Preferencias</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" (click)="logout()"><i class="bi bi-box-arrow-right me-2"></i>Cerrar
+                        Sesión</a></li>
+            </ul>
+        </div>
+    </div>
+</header>

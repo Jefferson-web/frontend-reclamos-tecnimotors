@@ -1,0 +1,542 @@
+<!-- detalle-reclamo.component.html -->
+
+<div class="container-fluid mt-4 mb-5">
+    <!-- Spinner de carga -->
+    <div *ngIf="cargando" class="d-flex justify-content-center mt-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> {{error}}
+    </div>
+
+    <!-- Contenido principal -->
+    <div *ngIf="!cargando && !error && reclamo">
+        <!-- Encabezado con acciones principales -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="d-flex align-items-center">
+                        <div class="ticket-icon me-3">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">Ticket #{{reclamo.ticketId}}</h3>
+                            <p class="text-muted mb-0">{{reclamo.motivoNombre}}</p>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap action-buttons mt-2 mt-md-0">
+                        <!-- Botón Atender (solo visible para Jefe de Área [asignados] y Administrador) -->
+                        <ng-container *appRoleBased="['JefeArea', 'Administrador']">
+                            <button *ngIf="reclamo.estado === 'EnProceso' && (esUsuarioAsignado() || esAdministrador())" 
+                                    class="btn btn-success me-2 mb-2 mb-md-0" 
+                                    (click)="mostrarModalAtender()">
+                                <i class="fas fa-check-circle me-1"></i> Atender
+                            </button>
+                        </ng-container>
+                        
+                        <!-- Botón Cerrar (visible para Atención al Cliente si está Atendido, y para Administrador siempre) -->
+                        <ng-container *appRoleBased="['AtencionCliente', 'Administrador']">
+                            <button *ngIf="(reclamo.estado === 'Atendido' && esAtencionCliente()) || 
+                                         (esAdministrador() && (reclamo.estado === 'Abierto' || reclamo.estado === 'Atendido'))" 
+                                    class="btn btn-primary me-2 mb-2 mb-md-0" 
+                                    (click)="mostrarModalCerrar()">
+                                <i class="fas fa-lock me-1"></i> Cerrar
+                            </button>
+                        </ng-container>
+                        
+                        <!-- Botón Rechazar (solo visible para Jefe de Área [asignados] y Administrador) -->
+                        <ng-container *appRoleBased="['JefeArea', 'Administrador']">
+                            <button *ngIf="reclamo.estado === 'Abierto' && (esUsuarioAsignado() || esAdministrador())" 
+                                    class="btn btn-danger me-2 mb-2 mb-md-0" 
+                                    (click)="mostrarModalRechazar()">
+                                <i class="fas fa-ban me-1"></i> Rechazar
+                            </button>
+                        </ng-container>
+                        
+                        <!-- Botón Editar (visible según permisos - opcional) -->
+                        <ng-container *appRoleBased="['Administrador', 'JefeArea']">
+                            <button *ngIf="reclamo.estado === 'Abierto'" 
+                                    class="btn btn-outline-primary me-2 mb-2 mb-md-0" 
+                                    (click)="editarReclamo()">
+                                <i class="fas fa-edit me-1"></i> Editar
+                            </button>
+                        </ng-container>
+                        
+                        <button class="btn btn-light" (click)="volver()">
+                            <i class="fas fa-arrow-left me-1"></i> Volver
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado y prioridad como badges flotantes -->
+        <div class="status-badges">
+            <span class="badge rounded-pill me-2" 
+                  [ngClass]="getEstadoClass()">
+                <i [class]="getEstadoIcon()"></i> {{formatearEstado(reclamo?.estado)}}
+            </span>
+            <span class="badge rounded-pill" 
+                  [ngClass]="{ 
+                    'priority-alta': reclamo?.prioridad?.toLowerCase() === 'alta',
+                    'priority-media': reclamo?.prioridad?.toLowerCase() === 'media',
+                    'priority-baja': reclamo?.prioridad?.toLowerCase() === 'baja'
+                  }">
+                <i class="fas fa-flag"></i> {{reclamo?.prioridad}}
+            </span>
+        </div>
+
+        <!-- Contenido principal con layout mejorado -->
+        <div class="row">
+            <!-- Panel izquierdo - Información del reclamo -->
+            <div class="col-lg-8 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Información del Reclamo</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Primera columna - Cliente y ubicación -->
+                            <div class="col-md-6">
+                                <div class="info-section cliente-info">
+                                    <h6 class="section-title">
+                                        <i class="fas fa-user-circle"></i> Cliente
+                                    </h6>
+                                    <div class="info-content">
+                                        <p class="mb-1 info-item"><strong>Nombre:</strong> {{reclamo.cliente}}</p>
+                                        <p class="mb-1 info-item"><strong>Teléfono:</strong> {{reclamo.telefono || 'No disponible'}}</p>
+                                        <p class="mb-1 info-item"><strong>Correo:</strong> {{reclamo.correo || 'No disponible'}}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-section ubicacion-info">
+                                    <h6 class="section-title">
+                                        <i class="fas fa-map-marker-alt"></i> Ubicación
+                                    </h6>
+                                    <div class="info-content">
+                                        <p class="mb-1 info-item">{{reclamo.departamentoNombre}}</p>
+                                        <p class="mb-1 info-item">{{reclamo.provinciaNombre}}</p>
+                                        <p class="mb-1 info-item">{{reclamo.distritoNombre}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Segunda columna - Datos del reclamo y registrado por -->
+                            <div class="col-md-6">
+                                <div class="info-section reclamo-info">
+                                    <h6 class="section-title">
+                                        <i class="fas fa-clipboard-list"></i> Detalles
+                                    </h6>
+                                    <div class="info-content">
+                                        <p class="mb-1 info-item"><strong>Motivo:</strong> {{reclamo.motivoNombre}}</p>
+                                        <p class="mb-1 info-item"><strong>Creado:</strong> {{reclamo.fechaCreacion | date:'dd/MM/yyyy HH:mm'}}</p>
+                                        <p class="mb-1 info-item"><strong>Última actualización:</strong> 
+                                            {{reclamo.ultimaModificacion ? (reclamo.ultimaModificacion | date:'dd/MM/yyyy HH:mm') : 'No actualizado'}}
+                                        </p>
+                                        <p class="mb-1 info-item"><strong>Días abierto:</strong> {{reclamo.diasAbierto}} días</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-section registrado-info">
+                                    <h6 class="section-title">
+                                        <i class="fas fa-user-tie"></i> Registrado por
+                                    </h6>
+                                    <div class="info-content">
+                                        <p class="mb-1 info-item">{{reclamo.usuarioNombre}} {{reclamo.usuarioApellidos}}</p>
+                                        <p class="mb-1 info-item text-muted">{{formatearRol(reclamo.usuarioRolNombre)}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Detalle del reclamo -->
+                        <div class="info-section detalle-reclamo mt-4">
+                            <h6 class="section-title">
+                                <i class="fas fa-align-left"></i> Detalle del Reclamo
+                            </h6>
+                            <div class="detalle-content p-3 bg-light rounded" [innerHTML]="reclamo.detalle"></div>
+                        </div>
+                        
+                        <!-- Asignaciones -->
+                        <div class="info-section asignaciones-info mt-4">
+                            <h6 class="section-title">
+                                <i class="fas fa-users"></i> Agentes Asignados
+                            </h6>
+                            <div *ngIf="reclamo.asignaciones?.length === 0" class="alert alert-info py-2">
+                                No hay agentes asignados a este reclamo.
+                            </div>
+                            
+                            <div *ngFor="let asignacion of reclamo.asignaciones" class="asignacion-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="avatar-circle" [ngClass]="{'current-user': esUsuarioActual(asignacion.usuarioId)}">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ms-3 flex-grow-1">
+                                        <h6 class="mb-0">
+                                            {{asignacion.usuarioNombre}} {{asignacion.usuarioApellidos}}
+                                            <span *ngIf="esUsuarioActual(asignacion.usuarioId)" class="badge bg-primary ms-1">Tú</span>
+                                        </h6>
+                                        <p class="text-muted mb-0">{{formatearRol(asignacion.usuarioRolNombre)}} - {{asignacion.usuarioEmail}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Archivos -->
+                        <div class="info-section archivos-info mt-4">
+                            <h6 class="section-title">
+                                <i class="fas fa-paperclip"></i> Archivos Adjuntos
+                            </h6>
+                            <div *ngIf="reclamo.archivos?.length === 0" class="alert alert-info py-2">
+                                No hay archivos adjuntos a este reclamo.
+                            </div>
+                            
+                            <div class="archivos-container">
+                                <div *ngFor="let archivo of reclamo.archivos" class="archivo-item">
+                                    <div class="archivo-icon">
+                                        <i [ngClass]="getFileIconClass(archivo.nombreOriginal)"></i>
+                                    </div>
+                                    <div class="archivo-info">
+                                        <div class="archivo-nombre text-truncate" [title]="archivo.nombreOriginal">
+                                            {{archivo.nombreOriginal}}
+                                        </div>
+                                        <div class="archivo-metadata">
+                                            <span class="archivo-tamano">{{archivo.tamanoFormateado || formatearTamano(archivo.tamanoByte)}}</span>
+                                            <span class="archivo-fecha">{{archivo.fechaSubida | date:'dd/MM/yyyy HH:mm'}}</span>
+                                        </div>
+                                    </div>
+                                    <div class="archivo-acciones">
+                                        <button class="btn btn-sm btn-primary" 
+                                                (click)="descargarArchivo(archivo)"
+                                                title="Descargar">
+                                            <i class="fas fa-download me-1"></i> Descargar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Panel derecho - Línea de tiempo y estados -->
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Historial de Estados</h5>
+                    </div>
+                    <div class="card-body timeline-container">
+                        <div *ngIf="reclamo.historialEstados?.length === 0" class="alert alert-info">
+                            No hay cambios de estado registrados.
+                        </div>
+                        
+                        <div class="timeline">
+                            <div *ngFor="let historial of reclamo.historialEstados" class="timeline-item">
+                                <div class="timeline-dot" [ngClass]="getEstadoTimelineClass(historial.estadoNuevo)"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <span class="timeline-badge" [ngClass]="getEstadoTimelineClass(historial.estadoNuevo)">
+                                            <i [class]="getEstadoIconByName(historial.estadoNuevo)"></i>
+                                        </span>
+                                        <h6 class="mb-0">{{historial.estadoNuevo}}</h6>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <p class="mb-1"><strong>Desde:</strong> {{historial.estadoAnterior}}</p>
+                                        <p class="mb-1">
+                                            <strong>Por:</strong> {{historial.usuarioNombre}} {{historial.usuarioApellidos}}
+                                            <span *ngIf="esUsuarioActual(historial.usuarioId)" class="badge bg-primary ms-1">Tú</span>
+                                        </p>
+                                        <p class="mb-0"><small class="text-muted">{{historial.fechaRegistro | date:'dd/MM/yyyy HH:mm'}}</small></p>
+                                        <p *ngIf="historial.comentario" class="mt-2 comentario-historial">"{{historial.comentario}}"</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección de Interacciones -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Interacciones</h5>
+                <span class="badge bg-info">{{reclamo.interacciones?.length || 0}} interacciones</span>
+            </div>
+            <div class="card-body">
+                <div class="interacciones-container">
+                    <div *ngIf="reclamo.interacciones?.length === 0" class="alert alert-info">
+                        No hay interacciones registradas para este reclamo.
+                    </div>
+                    
+                    <div *ngFor="let interaccion of reclamo.interacciones" 
+                        class="chat-message" 
+                        [ngClass]="{
+                            'staff': interaccion.usuarioRolNombre !== 'Cliente',
+                            'customer': interaccion.usuarioRolNombre === 'Cliente',
+                            'current-user': esUsuarioActual(interaccion.usuarioId)
+                        }">
+                        <!-- Cabecera del mensaje -->
+                        <div class="message-header">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <!-- Información del usuario -->
+                                <div class="d-flex">
+                                    <div class="avatar-small me-2" [ngClass]="{
+                                            'staff-avatar': interaccion.usuarioRolNombre !== 'Cliente', 
+                                            'customer-avatar': interaccion.usuarioRolNombre === 'Cliente',
+                                            'current-user-avatar': esUsuarioActual(interaccion.usuarioId)
+                                        }">
+                                        <i class="fas" [ngClass]="{'fa-user-tie': interaccion.usuarioRolNombre !== 'Cliente', 
+                                                            'fa-user': interaccion.usuarioRolNombre === 'Cliente'}"></i>
+                                    </div>
+                                    <div class="sender-info">
+                                        <div class="sender">
+                                            <span class="username">{{interaccion.usuarioNombreCompleto}}</span>
+                                            <span class="badge" [ngClass]="getRolClass(interaccion.usuarioRolNombre)">
+                                                {{formatearRol(interaccion.usuarioRolNombre)}}
+                                            </span>
+                                            <span *ngIf="esUsuarioActual(interaccion.usuarioId)" class="badge bg-primary ms-1">Tú</span>
+                                        </div>
+                                        <span class="time">{{interaccion.fechaRegistro | date:'dd/MM/yyyy HH:mm'}}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Botones de acción -->
+                                <div class="message-actions" *ngIf="puedeEditarInteraccion(interaccion)">
+                                    <button class="btn btn-sm btn-outline-primary me-1" (click)="editarInteraccion(interaccion)" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" (click)="eliminarInteraccion(interaccion)" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contenido del mensaje -->
+                        <div class="message-content" [innerHTML]="interaccion.mensaje"></div>
+                        
+                        <!-- Archivos adjuntos -->
+                        <div *ngIf="interaccion.archivos?.length > 0" class="attachments">
+                            <div class="attachments-header">
+                                <i class="fas fa-paperclip me-1"></i>
+                                Archivos adjuntos ({{interaccion.archivos.length}})
+                            </div>
+                            
+                            <div class="attachments-list">
+                                <div *ngFor="let archivo of interaccion.archivos" class="attachment-card">
+                                    <div class="attachment-icon">
+                                        <i [ngClass]="getFileIconClass(archivo.nombreOriginal)"></i>
+                                    </div>
+                                    <div class="attachment-info">
+                                        <div class="attachment-name text-truncate">{{archivo.nombreOriginal}}</div>
+                                        <div class="attachment-size">{{archivo.tamanoFormateado || formatearTamano(archivo.tamanoByte)}}</div>
+                                    </div>
+                                    <div class="attachment-action">
+                                        <button class="btn btn-sm btn-outline-primary download-btn" (click)="descargarArchivo(archivo)" title="Descargar">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Formulario para nueva interacción -->
+                <div class="mt-4">
+                    <div *ngIf="!puedeCrearInteraccion" class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span *ngIf="esJefeArea() && !esUsuarioAsignado()">
+                          No puedes crear interacciones porque no estás asignado a este reclamo.
+                        </span>
+                        <span *ngIf="esJefeArea() && esUsuarioAsignado() && reclamo?.interacciones?.length > 0">
+                          Como Jefe de Área, solo puedes realizar la primera interacción. Este reclamo ya tiene interacciones.
+                        </span>
+                        <span *ngIf="esAtencionCliente() && !(reclamo?.interacciones?.length > 0)">
+                          Como Atención al Cliente, solo puedes interactuar después de que un Jefe de Área haya realizado la primera interacción.
+                        </span>
+                        <span *ngIf="!esJefeArea() && !esAtencionCliente() && !esAdministrador()">
+                          No tienes permisos para crear interacciones en este reclamo.
+                        </span>
+                      </div>
+                    <div class="card border-0 bg-light" *ngIf="puedeCrearInteraccion">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">
+                                <i class="fas" [ngClass]="{'fa-edit': modoEdicion, 'fa-reply': !modoEdicion}"></i>
+                                {{modoEdicion ? 'Editar interacción' : 'Agregar nueva interacción'}}
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <form [formGroup]="interaccionForm" (ngSubmit)="enviarInteraccion()">
+                                <div class="mb-3">
+                                    <label for="editor" class="form-label">Mensaje</label>
+                                    <ngx-editor-menu [editor]="editor" [toolbar]="toolbar" class="editor-menu"></ngx-editor-menu>
+                                    <ngx-editor
+                                        id="editor"
+                                        [editor]="editor"
+                                        formControlName="mensaje"
+                                        [placeholder]="'Escribe tu mensaje aquí...'"
+                                        class="editor-container"
+                                    ></ngx-editor>
+                                    <div *ngIf="interaccionForm.get('mensaje')?.invalid && interaccionForm.get('mensaje')?.touched" 
+                                        class="text-danger mt-1">
+                                        <i class="fas fa-exclamation-circle me-1"></i> El mensaje es requerido
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="archivos" class="form-label">
+                                        <i class="fas fa-paperclip me-1"></i> Archivos adjuntos
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="file" 
+                                            id="archivos"
+                                            class="form-control" 
+                                            (change)="onFilesSelected($event)" 
+                                            multiple
+                                            #fileInput>
+                                        <button type="button" class="btn btn-outline-secondary" (click)="limpiarArchivosSeleccionados()">
+                                            <i class="fas fa-times"></i> Limpiar
+                                        </button>
+                                    </div>
+                                    <div class="form-text">Puedes adjuntar múltiples archivos (máx. 5MB por archivo)</div>
+                                </div>
+
+                                <!-- Archivos seleccionados -->
+                                <div *ngIf="archivosSeleccionados.length > 0" class="mb-3">
+                                    <h6 class="mb-2">
+                                        <i class="fas fa-folder-open me-1"></i> Archivos seleccionados:
+                                    </h6>
+                                    <div class="archivos-seleccionados">
+                                        <div *ngFor="let archivo of archivosSeleccionados; let i = index" 
+                                            class="archivo-selected-item">
+                                            <div class="d-flex align-items-center">
+                                                <i [ngClass]="getFileIconClass(archivo.name)"></i>
+                                                <div class="ms-2 flex-grow-1">
+                                                    <p class="mb-0 text-truncate">{{archivo.name}}</p>
+                                                    <small class="text-muted">{{formatearTamano(archivo.size)}}</small>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" (click)="eliminarArchivoSeleccionado(i)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-outline-secondary me-2" (click)="cancelarEdicion()" *ngIf="modoEdicion">
+                                        <i class="fas fa-times me-1"></i> Cancelar
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" [disabled]="interaccionForm.invalid || enviando">
+                                        <i class="fas" [ngClass]="{'fa-paper-plane': !modoEdicion, 'fa-save': modoEdicion}"></i>
+                                        {{modoEdicion ? 'Actualizar' : 'Enviar'}}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Atender Reclamo (confirmación simple) -->
+<div class="modal fade" id="atenderModal" #modalAtender tabindex="-1" aria-labelledby="atenderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="atenderModalLabel">Atender Reclamo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> 
+                    Estás a punto de marcar este reclamo como "Atendido".
+                </div>
+                
+                <p>¿Estás seguro de que deseas marcar este reclamo como atendido?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" [disabled]="procesandoAccion" (click)="atenderReclamo()">
+                    <i class="fas fa-check-circle me-1"></i> 
+                    <span *ngIf="!procesandoAccion">Confirmar</span>
+                    <span *ngIf="procesandoAccion">Procesando...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Cerrar Reclamo (confirmación simple) -->
+<div class="modal fade" id="cerrarModal" #modalCerrar tabindex="-1" aria-labelledby="cerrarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cerrarModalLabel">Cerrar Reclamo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i> 
+                    Al cerrar el reclamo, este ya no podrá modificarse. Esta acción no se puede deshacer.
+                </div>
+                
+                <p>¿Estás seguro de que deseas cerrar este reclamo?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" [disabled]="procesandoAccion" (click)="cerrarReclamo()">
+                    <i class="fas fa-lock me-1"></i> 
+                    <span *ngIf="!procesandoAccion">Confirmar Cierre</span>
+                    <span *ngIf="procesandoAccion">Procesando...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Rechazar Reclamo (con entrada para el motivo) -->
+<div class="modal fade" id="rechazarModal" #modalRechazar tabindex="-1" aria-labelledby="rechazarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rechazarModalLabel">Rechazar Reclamo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i> 
+                    Esta acción marcará el reclamo como rechazado. Esta acción no se puede deshacer.
+                </div>
+                
+                <p>¿Estás seguro de que deseas rechazar este reclamo?</p>
+                
+                <div class="form-group">
+                    <label for="motivoRechazo" class="form-label">Motivo del rechazo (requerido):</label>
+                    <textarea class="form-control" id="motivoRechazo" rows="3" [(ngModel)]="comentarioAccion" required></textarea>
+                    <div *ngIf="formSubmitted && !comentarioAccion" class="text-danger mt-1">
+                        <i class="fas fa-exclamation-circle me-1"></i> El motivo del rechazo es requerido
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" [disabled]="procesandoAccion" (click)="rechazarReclamo()">
+                    <i class="fas fa-ban me-1"></i> 
+                    <span *ngIf="!procesandoAccion">Confirmar Rechazo</span>
+                    <span *ngIf="procesandoAccion">Procesando...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

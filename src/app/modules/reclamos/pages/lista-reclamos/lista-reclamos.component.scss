@@ -1,0 +1,200 @@
+.table th {
+    white-space: nowrap;
+}
+
+.badge {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 0.95rem;
+}
+
+.btn-group .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.assignee-item {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-bottom: 2px;
+    font-size: 0.85rem;
+}
+
+/* Estilo para destacar reclamos prioritarios */
+tr.prioridad-alta {
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+/* Mejorar visualización en dispositivos móviles */
+@media (max-width: 767.98px) {
+    .table {
+        font-size: 0.85rem;
+    }
+
+    .card-footer {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .pagination {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+}
+
+// Estilos para la tabla de reclamos
+.ticket-code {
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.estado-badge {
+  padding: 0.5rem 0.8rem;
+  font-size: 0.85rem;
+  border-radius: 30px;
+  
+  i {
+    margin-right: 4px;
+  }
+}
+
+.assignee-item {
+  padding: 2px 0;
+  
+  i {
+    opacity: 0.8;
+  }
+}
+
+.empty-state {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  i {
+    opacity: 0.5;
+  }
+}
+
+// Mejoras responsivas
+@media (max-width: 768px) {
+  .card-footer {
+    flex-direction: column;
+    align-items: center;
+    
+    .showing-info, nav, div {
+      margin-bottom: 10px;
+    }
+  }
+}
+
+// Variables de colores de estado
+$estado-registrado-bg: rgba(54, 162, 235, 0.7);
+$estado-registrado-hover: rgba(54, 162, 235, 0.9);
+
+$estado-enproceso-bg: rgba(255, 193, 7, 0.7);
+$estado-enproceso-hover: rgba(255, 193, 7, 0.9);
+
+$estado-atendido-bg: rgba(40, 167, 69, 0.7);
+$estado-atendido-hover: rgba(40, 167, 69, 0.9);
+
+$estado-cerrado-bg: rgba(108, 117, 125, 0.7);
+$estado-cerrado-hover: rgba(108, 117, 125, 0.9);
+
+$estado-rechazado-bg: rgba(220, 53, 69, 0.7);
+$estado-rechazado-hover: rgba(220, 53, 69, 0.9);
+
+// Estilos para la tabla de reclamos
+.ticket-code {
+  font-family: monospace;
+  font-weight: 600;
+}
+
+// Estado badges con tus colores específicos
+.estado-badge {
+  padding: 0.5rem 0.8rem;
+  font-size: 0.85rem;
+  border-radius: 30px;
+  color: white; // Texto blanco para mejor contraste
+  
+  i {
+    margin-right: 4px;
+  }
+  
+  &.estado-registrado {
+    background-color: $estado-registrado-bg;
+    
+    &:hover {
+      background-color: $estado-registrado-hover;
+    }
+  }
+  
+  &.estado-enproceso {
+    background-color: $estado-enproceso-bg;
+    color: #212529; // Texto oscuro para mejor contraste con el amarillo
+    
+    &:hover {
+      background-color: $estado-enproceso-hover;
+    }
+  }
+  
+  &.estado-atendido {
+    background-color: $estado-atendido-bg;
+    
+    &:hover {
+      background-color: $estado-atendido-hover;
+    }
+  }
+  
+  &.estado-cerrado {
+    background-color: $estado-cerrado-bg;
+    
+    &:hover {
+      background-color: $estado-cerrado-hover;
+    }
+  }
+  
+  &.estado-rechazado {
+    background-color: $estado-rechazado-bg;
+    
+    &:hover {
+      background-color: $estado-rechazado-hover;
+    }
+  }
+}
+
+.assignee-item {
+  padding: 2px 0;
+  
+  i {
+    opacity: 0.8;
+  }
+}
+
+.empty-state {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  i {
+    opacity: 0.5;
+  }
+}
+
+// Mejoras responsivas
+@media (max-width: 768px) {
+  .card-footer {
+    flex-direction: column;
+    align-items: center;
+    
+    .showing-info, nav, div {
+      margin-bottom: 10px;
+    }
+  }
+}

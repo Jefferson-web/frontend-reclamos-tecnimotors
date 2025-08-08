@@ -1,0 +1,228 @@
+<!-- src/app/modules/reclamos/pages/nuevo-reclamo/nuevo-reclamo.component.html -->
+<div class="container-fluid">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">Nuevo Reclamo</h3>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="reclamoForm" (ngSubmit)="onSubmit()">
+          <!-- Datos del cliente -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h4 class="card-title">Datos del Cliente</h4>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="cliente" class="form-label">Cliente</label>
+                <input type="text" id="cliente" formControlName="cliente" class="form-control" placeholder="Ingrese el cliente">
+                <div *ngIf="reclamoForm.get('cliente')?.touched && reclamoForm.get('cliente')?.invalid" class="text-danger">
+                  El cliente es requerido
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="nombres" class="form-label">Nombres</label>
+                <input type="text" id="nombres" formControlName="nombres" class="form-control" placeholder="Ingrese nombres">
+                <div *ngIf="reclamoForm.get('nombres')?.touched && reclamoForm.get('nombres')?.invalid" class="text-danger">
+                  Los nombres son requeridos
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="apellidos" class="form-label">Apellidos</label>
+                <input type="text" id="apellidos" formControlName="apellidos" class="form-control" placeholder="Ingrese apellidos">
+                <div *ngIf="reclamoForm.get('apellidos')?.touched && reclamoForm.get('apellidos')?.invalid" class="text-danger">
+                  Los apellidos son requeridos
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input type="tel" id="telefono" formControlName="telefono" class="form-control" placeholder="Ingrese teléfono (9 dígitos)">
+                <div *ngIf="reclamoForm.get('telefono')?.touched && reclamoForm.get('telefono')?.errors?.['required']" class="text-danger">
+                  El teléfono es requerido
+                </div>
+                <div *ngIf="reclamoForm.get('telefono')?.touched && reclamoForm.get('telefono')?.errors?.['pattern']" class="text-danger">
+                  El teléfono debe tener 9 dígitos
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="correo" class="form-label">Correo Electrónico</label>
+                <input type="email" id="correo" formControlName="correo" class="form-control" placeholder="Ingrese correo electrónico">
+                <div *ngIf="reclamoForm.get('correo')?.touched && reclamoForm.get('correo')?.errors?.['required']" class="text-danger">
+                  El correo es requerido
+                </div>
+                <div *ngIf="reclamoForm.get('correo')?.touched && reclamoForm.get('correo')?.errors?.['email']" class="text-danger">
+                  Ingrese un correo válido
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Detalles del reclamo -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h4 class="card-title">Detalles del Reclamo</h4>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="motivoId" class="form-label">Motivo</label>
+                <select id="motivoId" formControlName="motivoId" class="form-select">
+                  <option value="">Seleccione un motivo</option>
+                  <option *ngFor="let motivo of motivos" [value]="motivo.motivoId">{{ motivo.nombre }}</option>
+                </select>
+                <div *ngIf="reclamoForm.get('motivoId')?.touched && reclamoForm.get('motivoId')?.invalid" class="text-danger">
+                  El motivo es requerido
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="prioridad" class="form-label">Prioridad</label>
+                <select id="prioridad" formControlName="prioridad" class="form-select" [selectedIndex]="0">
+                  <option value="Baja">Baja</option>
+                  <option value="Media">Media</option>
+                  <option value="Alta">Alta</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="col-12">
+              <div class="form-group mb-3">
+                <label for="detalle" class="form-label">Detalle del Reclamo</label>
+                <div class="NgxEditor__Wrapper" style="min-height: 200px;">
+                  <ngx-editor-menu [editor]="editor"></ngx-editor-menu>
+                  <ngx-editor
+                    id="detalle"
+                    formControlName="detalle"
+                    [editor]="editor"
+                    [placeholder]="'Describa el reclamo detalladamente...'"
+                  ></ngx-editor>
+                </div>
+                <div *ngIf="reclamoForm.get('detalle')?.touched && reclamoForm.get('detalle')?.invalid" class="text-danger">
+                  El detalle del reclamo es requerido
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Ubicación -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h4 class="card-title">Ubicación</h4>
+            </div>
+            
+            <div class="col-md-4">
+              <div class="form-group mb-3">
+                <label for="departamentoId" class="form-label">Departamento</label>
+                <select id="departamentoId" formControlName="departamentoId" class="form-select">
+                  <option value="">Seleccione un departamento</option>
+                  <option *ngFor="let dpto of departamentos" [value]="dpto.id">{{ dpto.nombre }}</option>
+                </select>
+                <div *ngIf="reclamoForm.get('departamentoId')?.touched && reclamoForm.get('departamentoId')?.invalid" class="text-danger">
+                  El departamento es requerido
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-4">
+              <div class="form-group mb-3">
+                <label for="provinciaId" class="form-label">Provincia</label>
+                <select id="provinciaId" formControlName="provinciaId" class="form-select" [disabled]="!reclamoForm.get('departamentoId')?.value">
+                  <option value="">Seleccione una provincia</option>
+                  <option *ngFor="let prov of provincias" [value]="prov.id">{{ prov.nombre }}</option>
+                </select>
+                <div *ngIf="reclamoForm.get('provinciaId')?.touched && reclamoForm.get('provinciaId')?.invalid" class="text-danger">
+                  La provincia es requerida
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-4">
+              <div class="form-group mb-3">
+                <label for="distritoId" class="form-label">Distrito</label>
+                <select id="distritoId" formControlName="distritoId" class="form-select" [disabled]="!reclamoForm.get('provinciaId')?.value">
+                  <option value="">Seleccione un distrito</option>
+                  <option *ngFor="let dist of distritos" [value]="dist.id">{{ dist.nombre }}</option>
+                </select>
+                <div *ngIf="reclamoForm.get('distritoId')?.touched && reclamoForm.get('distritoId')?.invalid" class="text-danger">
+                  El distrito es requerido
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row mb-4">
+            <div class="col-12">
+              <h4 class="card-title">Asignación</h4>
+            </div>
+            
+            <div class="col-12">
+              <div class="form-group mb-3">
+                <label class="form-label">Asignar a</label>
+                <angular2-multiselect
+                  [data]="usuarios"
+                  [(ngModel)]="usuariosSeleccionados"
+                  [settings]="dropdownSettings"
+                  formControlName="usuariosAsignadosIds"
+                  (onSelect)="onItemSelect($event)"
+                ></angular2-multiselect>
+                <div *ngIf="reclamoForm.get('usuariosAsignadosIds')?.touched && reclamoForm.get('usuariosAsignadosIds')?.invalid" class="text-danger">
+                  Debe asignar al menos un usuario
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Archivos adjuntos -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h4 class="card-title">Archivos Adjuntos</h4>
+            </div>
+            
+            <div class="col-12">
+              <div class="form-group mb-3">
+                <label for="archivos" class="form-label">Adjuntar archivos (opcional)</label>
+                <input type="file" id="archivos" class="form-control" multiple (change)="onFileChange($event)">
+              </div>
+            </div>
+            
+            <div class="col-12" *ngIf="archivosList.length > 0">
+              <h5>Archivos seleccionados:</h5>
+              <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let archivo of archivosList; let i = index">
+                  {{ archivo.name }}
+                  <button type="button" class="btn btn-danger btn-sm" (click)="removeFile(i)">
+                    <i class="bi bi-trash"></i> Eliminar
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- Botones de acción -->
+          <div class="row">
+            <div class="col-12 d-flex justify-content-end">
+              <button type="button" class="btn btn-secondary me-2" routerLink="/reclamos">Cancelar</button>
+              <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                Guardar Reclamo
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>

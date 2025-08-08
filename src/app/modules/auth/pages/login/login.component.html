@@ -1,0 +1,73 @@
+<!-- src/app/modules/auth/pages/login/login.component.html -->
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100">
+      <div class="col-md-6">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white text-center py-3">
+            <h2 class="mb-0">Sistema de Gestión de Reclamos</h2>
+            <p class="mb-0">Tecnimotors</p>
+          </div>
+          <div class="card-body p-4">
+            <h3 class="card-title text-center mb-4">Iniciar Sesión</h3>
+            
+            <div *ngIf="error" class="alert alert-danger">{{error}}</div>
+            
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+              <div class="mb-3">
+                <label for="email" class="form-label">Correo Electrónico</label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-envelope"></i>
+                  </span>
+                  <input
+                    type="email"
+                    formControlName="email"
+                    class="form-control"
+                    [ngClass]="{ 'is-invalid': submitted && f['email'].errors }"
+                    placeholder="ejemplo@tecnimotors.com"
+                  />
+                </div>
+                <div *ngIf="submitted && f['email'].errors" class="invalid-feedback d-block">
+                  <div *ngIf="f['email'].errors['required']">El correo electrónico es requerido</div>
+                  <div *ngIf="f['email'].errors['email']">Ingrese un correo electrónico válido</div>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <label for="password" class="form-label">Contraseña</label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-lock"></i>
+                  </span>
+                  <input
+                    type="password"
+                    formControlName="password"
+                    class="form-control"
+                    [ngClass]="{ 'is-invalid': submitted && f['password'].errors }"
+                    placeholder="Ingrese su contraseña"
+                  />
+                </div>
+                <div *ngIf="submitted && f['password'].errors" class="invalid-feedback d-block">
+                  <div *ngIf="f['password'].errors['required']">La contraseña es requerida</div>
+                </div>
+              </div>
+              
+              <div class="d-grid gap-2">
+                <button [disabled]="loading" class="btn btn-primary">
+                  <span *ngIf="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                  Iniciar Sesión
+                </button>
+              </div>
+              
+              <div class="text-center mt-3">
+                <a routerLink="/auth/recuperar-password" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
+              </div>
+            </form>
+          </div>
+          <div class="card-footer text-center text-muted py-3">
+            © 2025 Tecnimotors - Todos los derechos reservados
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,32 @@
+// src/app/modules/auth/pages/login/login.component.scss
+.min-vh-100 {
+    min-height: 100vh;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0;
+}
+
+.card-footer {
+    border-radius: 0 0 10px 10px;
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.btn-primary {
+    padding: 0.6rem;
+    font-weight: 500;
+}
+
+.input-group-text {
+    background-color: transparent;
+}
+
+.invalid-feedback {
+    display: block;
+}

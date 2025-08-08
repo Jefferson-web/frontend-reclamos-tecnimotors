@@ -1,0 +1,247 @@
+<!-- src/app/modules/motivos/pages/lista-motivos/lista-motivos.component.html -->
+<div class="container-fluid mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gestión de Motivos</h1>
+        <button class="btn btn-primary" (click)="abrirModalCrear()">
+            <i class="fas fa-plus me-1"></i> Nuevo Motivo
+        </button>
+    </div>
+
+    <!-- Tarjeta de filtros -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Filtros</h5>
+                <button class="btn btn-sm btn-link" (click)="toggleFiltros()">
+                    <i class="fas" [ngClass]="mostrarFiltros ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body" [ngClass]="{'d-none': !mostrarFiltros}">
+            <form [formGroup]="filtrosForm" (ngSubmit)="aplicarFiltros()">
+                <div class="row g-3">
+                    <!-- Filtro por Nombre -->
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" placeholder="Buscar por nombre"
+                            formControlName="nombre">
+                    </div>
+                    
+                    <!-- Configuración de paginación -->
+                    <div class="col-md-3">
+                        <label class="form-label">Elementos por página</label>
+                        <select class="form-select" formControlName="pageSize" (change)="cambiarItemsPorPagina()">
+                            <option [ngValue]="10">10 por página</option>
+                            <option [ngValue]="25">25 por página</option>
+                            <option [ngValue]="50">50 por página</option>
+                            <option [ngValue]="100">100 por página</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-3 gap-2">
+                    <button type="button" class="btn btn-outline-secondary" (click)="limpiarFiltros()">
+                        <i class="fas fa-eraser me-1"></i> Limpiar Filtros
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i> Aplicar Filtros
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de Motivos -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Listado de Motivos</h5>
+                <span class="badge bg-primary">{{totalMotivos}} motivos encontrados</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Descripción</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Fecha Registro</th>
+                            <th scope="col">Última Actualización</th>
+                            <th scope="col" class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let motivo of motivosFiltrados">
+                            <td>{{ motivo.motivoId }}</td>
+                            <td>{{ motivo.nombre }}</td>
+                            <td>{{ motivo.descripcion }}</td>
+                            <td>
+                                <span class="badge" [ngClass]="motivo.activo ? 'bg-success' : 'bg-danger'">
+                                    <i class="fas" [ngClass]="motivo.activo ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                                    {{ motivo.activo ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td>{{ motivo.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}</td>
+                            <td>{{ motivo.fechaActualizacion | date:'dd/MM/yyyy HH:mm' }}</td>
+                            <td class="text-center">
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary" title="Editar"
+                                        (click)="abrirModalEditar(motivo)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" title="Eliminar"
+                                        (click)="confirmarEliminar(motivo)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr *ngIf="motivosFiltrados!=null && motivosFiltrados.length === 0 && !cargando">
+                            <td colspan="7" class="text-center py-4">
+                                <div class="empty-state">
+                                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                    <p class="mb-0 text-muted">No se encontraron motivos que coincidan con los
+                                        criterios de búsqueda</p>
+                                    <button class="btn btn-sm btn-outline-primary mt-3" (click)="limpiarFiltros()">
+                                        <i class="fas fa-redo me-1"></i> Limpiar filtros y volver a intentar
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr *ngIf="cargando">
+                            <td colspan="7" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                                <p class="mb-0 mt-2">Cargando motivos...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap">
+            <div class="showing-info mb-2 mb-md-0">
+                Mostrando {{ motivosFiltrados.length > 0 ? ((paginaActual - 1) * itemsPorPagina + 1) : 0 }} a
+                {{ (paginaActual * itemsPorPagina) > totalMotivos ? totalMotivos : (paginaActual * itemsPorPagina) }}
+                de {{ totalMotivos }} motivos
+            </div>
+
+            <!-- Paginación -->
+            <nav aria-label="Paginación" class="mb-2 mb-md-0">
+                <ul class="pagination mb-0">
+                    <li class="page-item" [class.disabled]="!hasPreviousPage">
+                        <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(1)">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item" [class.disabled]="!hasPreviousPage">
+                        <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(paginaActual - 1)">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+
+                    <li class="page-item" *ngFor="let pagina of getPaginas()" [class.active]="paginaActual === pagina">
+                        <ng-container *ngIf="pagina !== -1; else ellipsis">
+                            <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(pagina)">
+                                {{ pagina }}
+                            </a>
+                        </ng-container>
+                        <ng-template #ellipsis>
+                            <span class="page-link">...</span>
+                        </ng-template>
+                    </li>
+
+                    <li class="page-item" [class.disabled]="!hasNextPage">
+                        <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(paginaActual + 1)">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item" [class.disabled]="!hasNextPage">
+                        <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(totalPaginas)">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Crear/Editar Motivo -->
+<div class="modal fade" id="motivoModal" tabindex="-1" aria-labelledby="motivoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="motivoModalLabel">{{ modoEdicion ? 'Editar' : 'Crear' }} Motivo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="motivoForm">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre *</label>
+                        <input type="text" class="form-control" id="nombre" formControlName="nombre" maxlength="100">
+                        <div *ngIf="motivoForm.get('nombre')?.invalid && motivoForm.get('nombre')?.touched" class="text-danger mt-1">
+                            <small *ngIf="motivoForm.get('nombre')?.errors?.['required']">El nombre es obligatorio.</small>
+                            <small *ngIf="motivoForm.get('nombre')?.errors?.['maxlength']">El nombre no puede exceder los 100 caracteres.</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion" formControlName="descripcion" rows="3" maxlength="500"></textarea>
+                        <div *ngIf="motivoForm.get('descripcion')?.invalid && motivoForm.get('descripcion')?.touched" class="text-danger mt-1">
+                            <small *ngIf="motivoForm.get('descripcion')?.errors?.['maxlength']">La descripción no puede exceder los 500 caracteres.</small>
+                        </div>
+                    </div>
+                    <div class="mb-3 form-check" *ngIf="modoEdicion">
+                        <input type="checkbox" class="form-check-input" id="activo" formControlName="activo">
+                        <label class="form-check-label" for="activo">Activo</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" [disabled]="motivoForm.invalid || guardando" (click)="guardarMotivo()">
+                    <span *ngIf="!guardando">
+                        <i class="fas" [ngClass]="modoEdicion ? 'fa-save' : 'fa-plus-circle'"></i>
+                        {{ modoEdicion ? 'Guardar Cambios' : 'Crear Motivo' }}
+                    </span>
+                    <span *ngIf="guardando">
+                        <i class="fas fa-spinner fa-spin me-1"></i> Guardando...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación para Eliminar -->
+<div class="modal fade" id="eliminarModal" tabindex="-1" aria-labelledby="eliminarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eliminarModalLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar el motivo <strong>{{ motivoSeleccionado?.nombre }}</strong>?</p>
+                <p class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" [disabled]="eliminando" (click)="eliminarMotivo()">
+                    <span *ngIf="!eliminando">
+                        <i class="fas fa-trash me-1"></i> Eliminar
+                    </span>
+                    <span *ngIf="eliminando">
+                        <i class="fas fa-spinner fa-spin me-1"></i> Eliminando...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
