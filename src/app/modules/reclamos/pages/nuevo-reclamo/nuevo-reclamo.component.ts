@@ -6,6 +6,7 @@ import { UbicacionService } from '../../../../core/services/ubicacion.service';
 import { MotivoService } from '../../../../core/services/motivo.service';
 import { UsuarioService } from '../../../../core/services/usuario.service';
 import { ReclamoService } from '../../../../core/services/reclamo.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-nuevo-reclamo',
@@ -13,29 +14,29 @@ import { ReclamoService } from '../../../../core/services/reclamo.service';
   templateUrl: './nuevo-reclamo.component.html',
   styleUrl: './nuevo-reclamo.component.scss'
 })
-export class NuevoReclamoComponent implements OnInit, OnDestroy{
+export class NuevoReclamoComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
-    
+
   }
 
   ngOnInit(): void {
     this.editor = new Editor();
-    
+
     // Cargar datos iniciales
     this.cargarDepartamentos();
     this.cargarMotivos();
     this.cargarUsuarios();
-    
-    this.dropdownSettings = { 
-      singleSelection: false, 
-      text:"Seleccionar usuarios",
-      selectAllText:'Select All',
-      unSelectAllText:'UnSelect All',
+
+    this.dropdownSettings = {
+      singleSelection: false,
+      text: "Seleccionar usuarios",
+      selectAllText: 'Select All',
+      unSelectAllText: 'UnSelect All',
       enableSearchFilter: true,
-      classes:"myclass custom-class"
+      classes: "myclass custom-class"
     };
-    
+
     this.reclamoForm.get('departamentoId')?.valueChanges.subscribe(departamentoId => {
       if (departamentoId) {
         this.cargarProvincias(departamentoId);
@@ -43,7 +44,7 @@ export class NuevoReclamoComponent implements OnInit, OnDestroy{
         this.reclamoForm.get('distritoId')?.setValue('');
       }
     });
-    
+
     this.reclamoForm.get('provinciaId')?.valueChanges.subscribe(provinciaId => {
       if (provinciaId) {
         this.cargarDistritos(provinciaId);
@@ -56,15 +57,15 @@ export class NuevoReclamoComponent implements OnInit, OnDestroy{
   editor: Editor;
   isSubmitting = false;
   archivosList: File[] = [];
-  
+
   // Para los select de ubicación
   departamentos: any[] = [];
   provincias: any[] = [];
   distritos: any[] = [];
-  
+
   // Para el select de motivos
   motivos: any[] = [];
-  
+
   // Para el multiselect de usuarios
   usuarios: any[] = [];
   usuariosSeleccionados: any[] = [];
@@ -99,25 +100,25 @@ export class NuevoReclamoComponent implements OnInit, OnDestroy{
       this.departamentos = data;
     });
   }
-  
+
   cargarProvincias(departamentoId: string): void {
     this.ubicacionService.getProvincias(departamentoId).subscribe(data => {
       this.provincias = data;
     });
   }
-  
+
   cargarDistritos(provinciaId: string): void {
     this.ubicacionService.getDistritos(provinciaId).subscribe(data => {
       this.distritos = data;
     });
   }
-  
+
   cargarMotivos(): void {
     this.motivoService.getMotivos().subscribe(data => {
       this.motivos = data;
     });
   }
-  
+
   cargarUsuarios(): void {
     this.usuarioService.getUsuariosPorRol(3).subscribe(data => {
       this.usuarios = data.map(user => ({
@@ -134,7 +135,7 @@ export class NuevoReclamoComponent implements OnInit, OnDestroy{
       }
     }
   }
-  
+
   removeFile(index: number): void {
     this.archivosList.splice(index, 1);
   }
@@ -142,7 +143,7 @@ export class NuevoReclamoComponent implements OnInit, OnDestroy{
   onItemSelect(item: any): void {
     // El multiselect ya maneja la selección internamente
   }
-  
+
   onSubmit(): void {
     if (this.reclamoForm.invalid) {
       Object.keys(this.reclamoForm.controls).forEach(key => {
@@ -151,33 +152,41 @@ export class NuevoReclamoComponent implements OnInit, OnDestroy{
       });
       return;
     }
-    
+
     this.isSubmitting = true;
-    
+
     const formData = new FormData();
-    
+
     Object.keys(this.reclamoForm.value).forEach(key => {
       if (key !== 'usuariosAsignadosIds') {
         formData.append(key, this.reclamoForm.value[key]);
       }
     });
-    
+
     this.usuariosSeleccionados.forEach(item => {
       formData.append('usuariosAsignadosIds', item.id);
     });
-    
+
     this.archivosList.forEach(archivo => {
       formData.append('archivos', archivo);
     });
-    
+
     this.reclamoService.crearReclamo(formData).subscribe(
       response => {
-        alert(`Reclamo creado con éxito. Número de ticket: ${response.data}`);
-        this.router.navigate(['/reclamos']);
-      },
-      error => {
-        console.error('Error al crear el reclamo', error);
-        this.isSubmitting = false;
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          html: `
+        <p>Reclamo creado correctamente</p>
+        <p><strong>Número de ticket: ${response.data}</strong></p>
+      `,
+          confirmButtonText: 'Ir a Lista de Reclamos',
+          confirmButtonColor: '#28a745'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.router.navigate(['/reclamos']);
+          }
+        });
       }
     );
   }

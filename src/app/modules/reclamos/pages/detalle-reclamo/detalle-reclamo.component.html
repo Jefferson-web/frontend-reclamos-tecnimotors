@@ -377,14 +377,16 @@
                             <form [formGroup]="interaccionForm" (ngSubmit)="enviarInteraccion()">
                                 <div class="mb-3">
                                     <label for="editor" class="form-label">Mensaje</label>
-                                    <ngx-editor-menu [editor]="editor" [toolbar]="toolbar" class="editor-menu"></ngx-editor-menu>
-                                    <ngx-editor
-                                        id="editor"
-                                        [editor]="editor"
-                                        formControlName="mensaje"
-                                        [placeholder]="'Escribe tu mensaje aquí...'"
-                                        class="editor-container"
-                                    ></ngx-editor>
+                                    <div style="min-height: 100px;">
+                                        <ngx-editor-menu style="height: 200px;" [editor]="editor"></ngx-editor-menu>
+                                        <ngx-editor
+                                            id="editor"
+                                            formControlName="mensaje"
+                                            [editor]="editor"
+                                            [placeholder]="'Describa el reclamo detalladamente...'"
+                                            style="height: 200px;"
+                                        ></ngx-editor>
+                                    </div>
                                     <div *ngIf="interaccionForm.get('mensaje')?.invalid && interaccionForm.get('mensaje')?.touched" 
                                         class="text-danger mt-1">
                                         <i class="fas fa-exclamation-circle me-1"></i> El mensaje es requerido
